@@ -1,0 +1,5 @@
+--require should
+--ui node_modules/mocha-scones
+--compilers coffee:coffee-script
+--reporter spec
+--recursive
