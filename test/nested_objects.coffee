@@ -12,3 +12,4 @@ Story 'Nested objects replace nested content', ->
     Then 'title has content', ->
       @result.should.equal '<div class="title">title is <span class="text">neverland</span></div>' +
               '<div class="text">Some more text</div>'
+

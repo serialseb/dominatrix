@@ -54,10 +54,34 @@ define(function (require){
   var simpleValuesConvention = function(template, $, templateNode, key, value) {
     if (!isHtml(value) && !isTextContent(value)) { return; }
     var selector = key + ", ." + key + ", #" + key;
-    var nodesToInject = templateNode.find(selector);
-
-    replaceContent(nodesToInject, value);
+    var $nodes = templateNode.find(selector);
+    if ($nodes.length === 0) { return;}
+    replaceContent($nodes, value);
   };
+
+
+
+
+
+  var attributeConvention = function(template, $, templateNode, key, value) {
+    if (!isTextContent(value)) { return; }
+
+    if (templateNode.attr(key)) {
+      templateNode.attr(key, value);
+    }
+  }
+
+
+
+
+
+
+
+
+  var dotContentConvention = function(template, $, templateNode, key, value) {
+    if (key !== '.') { return; }
+    replaceContent(templateNode, value);
+  }
 
 
 
@@ -147,7 +171,12 @@ define(function (require){
     this.document = document;
 
 
-    this.conventions = [simpleValuesConvention, arrayConvention, nestedObjectConvention];
+    this.conventions = [
+      simpleValuesConvention,
+      arrayConvention,
+      nestedObjectConvention,
+      attributeConvention,
+      dotContentConvention];
   };
 
   Template.prototype = {
