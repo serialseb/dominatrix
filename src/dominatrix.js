@@ -28,9 +28,13 @@ define(function (require){
   };
   var isHtml = function(value) {
     return value.html;
-  }
+  };
 
   var replaceContent = function(nodes, value){
+    if (_.isFunction(value)) {
+      value = value();
+    }
+    
     if (isHtml(value)) {
       nodes.empty().append(value);
     } else if (isTextContent(value)) {
@@ -51,25 +55,30 @@ define(function (require){
 
 
 
-  var simpleValuesConvention = function(template, $, templateNode, key, value) {
-    if (!isHtml(value) && !isTextContent(value)) { return; }
+  var elementSelectorConvention = function(template, $, templateNode, key, value) {
+//    if (!isHtml(value) && !isTextContent(value)) { return; }
     var selector = key + ", ." + key + ", #" + key;
     var $nodes = templateNode.find(selector);
     if ($nodes.length === 0) { return;}
-    replaceContent($nodes, value);
+    $nodes.each(function(index,element){
+      var $node = $(element);
+      template.applyConventions($, $node, value);
+    });
+//    replaceContent($nodes, value);
   };
 
 
 
 
-
   var attributeConvention = function(template, $, templateNode, key, value) {
-    if (!isTextContent(value)) { return; }
+    if (!isTextContent(value) && !_.isFunction(value)) { return; }
 
     if (templateNode.attr(key)) {
-      templateNode.attr(key, value);
+      var injectableValue = _.isFunction(value) ? value() : value;
+
+      templateNode.attr(key, injectableValue);
     }
-  }
+  };
 
 
 
@@ -81,7 +90,7 @@ define(function (require){
   var dotContentConvention = function(template, $, templateNode, key, value) {
     if (key !== '.') { return; }
     replaceContent(templateNode, value);
-  }
+  };
 
 
 
@@ -96,10 +105,9 @@ define(function (require){
     if (!_.isObject(value)) { return; }
     var selector = "." + key + ", #" + key;
     var $nodes = templateNode.find(selector);
-
+    if ($nodes.length === 0) { return; }
     $nodes.each(function(index, element) {
       var $node = $(element);
-      console.log('recursively applying convention');
       template.applyConventions($, $node, value);
     });
   };
@@ -172,7 +180,7 @@ define(function (require){
 
 
     this.conventions = [
-      simpleValuesConvention,
+      elementSelectorConvention,
       arrayConvention,
       nestedObjectConvention,
       attributeConvention,
@@ -190,12 +198,18 @@ define(function (require){
     },
     applyConventions: function($, $currentNode, data){
       var self = this;
-      _.each(data, function(value, key) {
-
+      var apply = function(key, value) {
         _.each(self.conventions, function(convention) {
           convention(self, self.document, $currentNode, key, value);
         });
-      });
+      };
+      if (isTextContent(data) || isHtml(data) || _.isFunction(data)) {
+        apply('.', data)
+      } else {
+        _.each(data, function(value, key) {
+          apply(key, value, data);
+        })
+      }
     }
   };
 

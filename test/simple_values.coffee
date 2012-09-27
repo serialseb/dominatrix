@@ -62,3 +62,13 @@ Story 'Simple key values are replaced by convention', ->
       @result = @template.bind(@data);
     Then 'title has content', ->
       @result.should.equal '<title><b>welcome to neverland</b></title>'
+
+  Feature 'values as functions returning strings are replaced', ->
+    Given 'template with html element', ->
+      @template = dom($.load('<title>content goes here</title>'));
+    Given 'data has property title', ->
+      @data = {title: ()-> 'my title'}
+    When 'binding template', ->
+      @result = @template.bind(@data);
+    Then 'title has content', ->
+      @result.should.equal '<title>my title</title>'
