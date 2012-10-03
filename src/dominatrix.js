@@ -34,7 +34,7 @@ define(function (require){
     if (_.isFunction(value)) {
       value = value();
     }
-    
+
     if (isHtml(value)) {
       nodes.empty().append(value);
     } else if (isTextContent(value)) {
